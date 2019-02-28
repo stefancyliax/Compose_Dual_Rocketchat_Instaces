@@ -1,0 +1,58 @@
+version: "2"
+
+# Create folders for every rocketchat instance
+# sudo mkdir -p /rocketchatX/data/db
+# sudo mkdir -p /rocketchatX/data/dump
+
+services:
+  db1:
+    image: mongo:3.6
+    entrypoint: mongod --smallfiles
+    volumes:
+      - ./rocketchat1/data/db:/data/db
+      - ./rocketchat1/data/dump:/dump
+    networks:
+      - rocknet1
+    command: --bind_ip_all
+    restart: unless-stopped
+
+  rocketchat1:
+    image: rocket.chat:0.71
+    environment:
+      - ROOT_URL=http://localhost:3001
+      - MONGO_URL=mongodb://db1:27017/meteor
+    ports:
+      - "3001:3000"
+    networks:
+      - rocknet1
+    depends_on:
+      - db1
+    restart: unless-stopped
+  
+  db2:
+    image: mongo:3.6
+    entrypoint: mongod --smallfiles
+    volumes:
+      - ./rocketchat2/data/db:/data/db
+      - ./rocketchat2/data/dump:/dump
+    networks:
+      - rocknet2
+    command: --bind_ip_all
+    restart: unless-stopped
+  
+  rocketchat2:
+    image: rocket.chat:0.71
+    environment:
+      - ROOT_URL=http://localhost:3002
+      - MONGO_URL=mongodb://db2:27017/meteor
+    ports:
+      - "3002:3000"
+    networks:
+      - rocknet2
+    depends_on:
+      - db2
+    restart: unless-stopped
+
+networks:
+  rocknet1:
+  rocknet2:
