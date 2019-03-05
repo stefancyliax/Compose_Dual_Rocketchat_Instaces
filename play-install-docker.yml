@@ -1,0 +1,91 @@
+---
+- name: Install docker
+  gather_facts: No
+  hosts: vm
+
+  tasks:
+    - name: Install required pkgs
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+        - git
+        - epel-release
+        - python-pip
+
+    - name: Add Docker repo
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docer-ce.repo
+      become: yes
+
+    - name: Enable Docker Edge repo
+      ini_file:
+        dest: /etc/yum.repos.d/docer-ce.repo
+        section: 'docker-ce-edge'
+        option: enabled
+        value: 0
+      become: yes
+
+    - name: Enable Docker Test repo
+      ini_file:
+        dest: /etc/yum.repos.d/docer-ce.repo
+        section: 'docker-ce-test'
+        option: enabled
+        value: 0
+      become: yes
+
+    - name: Install Docker
+      yum:
+        name: docker-ce
+        state: latest
+      become: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
+
+    - name: Install docker-compose with pip
+      pip:
+        name: docker-compose
+        state: latest
+      become: yes
+
+    - name: upgrade all python packages
+      yum:
+        name: 'python*'
+        state: latest
+
+    # - name: Add user to docker group
+    #   user:
+    #     name: test
+    #     groups: docker
+    #     append: yes
+    #   become: yes
+
+    - name: checkout docker-compose 
+      git:
+        repo: 'https://github.com/stefancyliax/Compose_Dual_Rocketchat_Instaces.git'
+        dest: /home/Rocketchat
+    
+## mkdir
+    - name: create directory for Rocketchat deployment
+      file:
+        path: "{{ item }}"
+        state: directory
+        # become: yes
+      with_items:
+        - /home/Rocketchat/rocketchat1/data/db
+        - /home/Rocketchat/rocketchat1/data/dump
+        - /home/Rocketchat/rocketchat2/data/db
+        - /home/Rocketchat/rocketchat2/data/dump
+
+## docker-compose up
+## report docker ps
+
