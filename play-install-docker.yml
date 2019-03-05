@@ -6,15 +6,13 @@
   tasks:
     - name: Install required pkgs
       yum:
-        name: "{{ item }}"
+        name: yum-utils, device-mapper-persistent-data, lvm2, git, epel-release
         state: latest
-      with_items:
-        - yum-utils
-        - device-mapper-persistent-data
-        - lvm2
-        - git
-        - epel-release
-        - python-pip
+
+    - name: Install python-pip
+      yum:
+        name: python-pip
+        state: latest
 
     - name: Add Docker repo
       get_url:
@@ -62,14 +60,14 @@
         name: 'python*'
         state: latest
 
-    # - name: Add user to docker group
-    #   user:
-    #     name: test
-    #     groups: docker
-    #     append: yes
-    #   become: yes
+    - name: Add user to docker group
+      user:
+        name: TEST
+        groups: docker
+        append: yes
+      become: yes
 
-    - name: checkout docker-compose 
+    - name: checkout Github project for Rocketchat 
       git:
         repo: 'https://github.com/stefancyliax/Compose_Dual_Rocketchat_Instaces.git'
         dest: /home/Rocketchat
@@ -87,5 +85,12 @@
         - /home/Rocketchat/rocketchat2/data/dump
 
 ## docker-compose up
+    - name: start docker compose 
+      docker_service:
+        project_src: /home/Rocketchat/
+        state: present
+
+      
+
 ## report docker ps
 
